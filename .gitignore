@@ -1,0 +1,24 @@
+# Build artifacts
+/build/
+/output/
+/release/
+
+# jniLibs — populated by build.sh (do NOT commit .so files to git)
+/android-lib/src/main/jniLibs/arm64-v8a/*.so
+/android-lib/src/main/jniLibs/armeabi-v7a/*.so
+/android-lib/src/main/jniLibs/x86_64/*.so
+
+# Gradle build outputs
+/android-lib/build/
+/.gradle/
+/local.properties
+
+# Environment config (machine-specific)
+/config/env.sh
+
+# MSYS2 / build logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
