@@ -6,11 +6,11 @@ A purpose-built **FFmpeg 9.1 Android library** compiled as JNI shared libraries 
 
 ## Architecture
 
-Instead of running FFmpeg as a standalone command-line executable via `ProcessBuilder` (which fails on Android 10+ due to W^X security policies in app data directories), this project compiles FFmpeg 9.1 into **modular shared libraries + a thin JNI wrapper (`libffmpeg_jni.so`)**.
+Compiles FFmpeg 9.1 into **modular Android shared libraries (`.so`) and a JNI wrapper (`libffmpeg_jni.so`)** for in-process execution on Android 7.0+ (API 24+) through Android 15+ (API 35+).
 
 ```
 Kotlin (FFmpegBridge.kt)
-  └─ JNI → libffmpeg_jni.so          (wrapper: turns ffmpeg_main → runFFmpeg(args))
+  └─ JNI → libffmpeg_jni.so          (wraps ffmpeg_main → runFFmpeg / runFFmpegJson)
              ├─ libavcodec.so
              ├─ libavformat.so
              ├─ libavfilter.so
@@ -19,16 +19,7 @@ Kotlin (FFmpegBridge.kt)
              └─ libswscale.so
 ```
 
-### Why shared libraries, not a standalone binary?
-
-| Approach | Android 7–9 (API 24–28) | Android 10–13 (API 29–33) | Android 14+ (API 34+) |
-|---|---|---|---|
-| Standalone binary in `filesDir` (`execve`) | ✅ Works | ❌ Blocked by W^X policy | ❌ Hard blocked |
-| Static binary in `filesDir` (`execve`) | ✅ Works | ❌ Blocked | ❌ Hard blocked |
-| JNI `.so` in APK `jniLibs` (`System.loadLibrary`) | ✅ Works | ✅ Works | ✅ Works (trusted namespace) |
-| Runtime `.so` download in `filesDir` (`System.load`) | ✅ Works | ✅ Works (chmod 444) | ❌ Linker rejects non-apk libs |
-
-Bundling the shared libraries in `jniLibs` inside the APK/AAR guarantees 100% compatibility across all Android versions (API 24 through Android 15 / API 35+).
+Bundled in `jniLibs/` across `arm64-v8a`, `armeabi-v7a`, and `x86_64`, the libraries are loaded via `System.loadLibrary()` on app startup with 16 KB ELF page alignment (`-Wl,-z,max-page-size=16384`). For design rationale and legacy binary comparisons, see [ffmpeg-android-jni-guide.md](ffmpeg-android-jni-guide.md).
 
 ---
 
@@ -106,7 +97,7 @@ Copy-Item -Recurse `
   c:\Users\naska\OneDrive\Documents\GitHub\Android_yt-dlp_GUI\app\src\main\jniLibs\
 ```
 
-Copy `FFmpegBridge.kt` into `app/src/main/kotlin/com/ytdlp/android/engine/`.
+Copy `FFmpegBridge.kt` into `app/src/main/kotlin/com/ytdlp/ffmpeg/`.
 
 In `app/build.gradle.kts`:
 ```kotlin

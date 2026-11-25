@@ -58,6 +58,13 @@ android-lib/src/main/jniLibs/
 2. **Linker Trust**: Libraries placed in `jniLibs/` within the APK/AAB are extracted by `PackageManager` into the system's trusted library directory (`nativeLibraryDir`), allowing standard `System.loadLibrary()` calls without permission errors on all Android versions (API 24 to 35+).
 3. **16 KB Page Alignment**: Linked with `-Wl,-z,max-page-size=16384` to ensure compliance with Android 15's 16 KB memory page size requirements on ARM64 hardware.
 
+| Approach | Android 7–9 (API 24–28) | Android 10–13 (API 29–33) | Android 14+ (API 34+) |
+|---|---|---|---|
+| Standalone binary in `filesDir` (`execve`) | ✅ Works | ❌ Blocked by W^X policy | ❌ Hard blocked |
+| Static binary in `filesDir` (`execve`) | ✅ Works | ❌ Blocked | ❌ Hard blocked |
+| **JNI `.so` in APK `jniLibs` (`System.loadLibrary`)** | **✅ Works** | **✅ Works** | **✅ Works (trusted namespace)** |
+| Runtime `.so` download in `filesDir` (`System.load`) | ✅ Works | ✅ Works (chmod 444) | ❌ Linker rejects non-apk libs |
+
 ### Cancellation Handling
 FFmpeg 9.1's transcode loop and I/O interrupt callback cooperatively monitor `received_nb_signals`:
 - In `ffmpeg_jni.c`, `nativeCancelFFmpeg()` checks `g_ffmpeg_running` and sends `raise(SIGINT)` at most once per active `ffmpeg_main()` run.
@@ -77,7 +84,7 @@ Copy-Item -Recurse `
 ```
 
 ### Step 2: Copy Kotlin Bridge
-Copy `FFmpegBridge.kt` from `ffmpeg_yt-dlp_gui/android-lib/src/main/kotlin/com/ytdlp/ffmpeg/FFmpegBridge.kt` into `Android_yt-dlp_GUI/app/src/main/kotlin/com/ytdlp/android/engine/`.
+Copy `FFmpegBridge.kt` from `ffmpeg_yt-dlp_gui/android-lib/src/main/kotlin/com/ytdlp/ffmpeg/FFmpegBridge.kt` into `Android_yt-dlp_GUI/app/src/main/kotlin/com/ytdlp/ffmpeg/`.
 
 ### Step 3: Configure `app/build.gradle.kts`
 Ensure uncompressed packaging for faster mmap loading:
