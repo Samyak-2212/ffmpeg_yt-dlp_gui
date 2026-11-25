@@ -1,6 +1,6 @@
 # ffmpeg-yt-dlp-gui
 
-A purpose-built **FFmpeg 9.1 Android library** compiled as JNI shared libraries for use as the post-processing backend in the [yt-dlp Android GUI](../Android_yt-dlp_GUI).
+A purpose-built **FFmpeg 9.1 Android library** compiled as JNI shared libraries for use as the post-processing backend in [Android yt-dlp GUI](https://github.com/Samyak-2212/Android_yt-dlp_GUI).
 
 ---
 
